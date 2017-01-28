@@ -1,0 +1,106 @@
+{
+  "luis_schema_version": "1.3.0",
+  "name": "gideon",
+  "desc": "",
+  "culture": "en-us",
+  "intents": [
+    {
+      "name": "greetings"
+    },
+    {
+      "name": "None"
+    },
+    {
+      "name": "sendMeXNearMe"
+    }
+  ],
+  "entities": [
+    {
+      "name": "location"
+    },
+    {
+      "name": "place_type"
+    }
+  ],
+  "composites": [],
+  "closedLists": [],
+  "bing_entities": [],
+  "actions": [],
+  "model_features": [],
+  "regex_features": [],
+  "utterances": [
+    {
+      "text": "hello",
+      "intent": "greetings",
+      "entities": []
+    },
+    {
+      "text": "hi",
+      "intent": "greetings",
+      "entities": []
+    },
+    {
+      "text": "hey",
+      "intent": "greetings",
+      "entities": []
+    },
+    {
+      "text": "yo",
+      "intent": "greetings",
+      "entities": []
+    },
+    {
+      "text": "give me",
+      "intent": "sendMeXNearMe",
+      "entities": []
+    },
+    {
+      "text": "give me restaurants in mumbai",
+      "intent": "sendMeXNearMe",
+      "entities": [
+        {
+          "entity": "location",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "place_type",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "give me church near goregaon",
+      "intent": "sendMeXNearMe",
+      "entities": [
+        {
+          "entity": "location",
+          "startPos": 4,
+          "endPos": 4
+        },
+        {
+          "entity": "place_type",
+          "startPos": 2,
+          "endPos": 2
+        }
+      ]
+    },
+    {
+      "text": "are there any restaurant in chandivali?",
+      "intent": "sendMeXNearMe",
+      "entities": [
+        {
+          "entity": "location",
+          "startPos": 5,
+          "endPos": 5
+        },
+        {
+          "entity": "place_type",
+          "startPos": 3,
+          "endPos": 3
+        }
+      ]
+    }
+  ]
+}

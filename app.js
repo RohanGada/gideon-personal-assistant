@@ -1,6 +1,8 @@
 var restify = require('restify');
 var builder = require('botbuilder');
 var _ = require("lodash");
+var request = require("request");
+var googleAPIKey = 'AIzaSyAr1qnV2I_Pg_Ck3kgaKXtO_ma5gw3Z1rg';
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -53,24 +55,47 @@ bot.dialog('/', new builder.IntentDialog({ recognizers: [recognizer] })
     ])
     .matches('sendMeXNearMe', [
         function (session,result) {
-          // console.log("bhag bhenchod")
-            // session.beginDialog('/support');
-            // session.send("Bhag bhenchod");
-            console.log(result);
             if(result.entities && _.find(result.entities,function (key) {
               return key.type == 'place_type'
             }) && _.find(result.entities,function (key) {
               return key.type == 'location'
             }))
             {
-              session.send( _.find(result.entities,function (key) {
-                return key.type == 'place_type'
-              }).entity+" "+ _.find(result.entities,function (key) {
-                return key.type == 'location'
-              }).entity)
-              // re
-              // callback()
-              // request.
+                // Google PLaces API
+                request.post({
+                  url:'https://maps.googleapis.com/maps/api/geocode/json?address='+_.find(result.entities,function (key) {
+                    return key.type == 'location'
+                  }).entity+'&key='+googleAPIKey
+                },function (err,http,body) {
+                  if(body){
+                    body = JSON.parse(body);
+                  }
+                  if(err){
+                    session.send("Couldn't retrieve the results.")
+                  }else if(body && body.results){
+                    console.log("hain "+body);
+                    request.post({
+                      url:'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+body.results[0].geometry.location.lat+','+body.results[0].geometry.location.long+'&radius=500&type='+_.find(result.entities,function (key) {
+                        return key.type == 'place_type'
+                      }).entity+'&keyword=cruise&key='+googleAPIKey
+                    },function (err,http,body) {
+                      if(body){
+                        body = JSON.parse(body);
+                      }
+                      if(err){
+                        session.send("Couldn't retrieve the results.")
+                      }else if(body && body.results){
+                        console.log(body.results);
+                        }else{
+                        session.send("No results found.");
+                      }
+                    });
+                  }else{
+                    console.log(body.results);
+                    session.send("The location is in existent");
+                  }
+                });
+              //
             }else if(_.find(result.entities,function (key) {
               return key.type == 'place_type'
             }) && !_.find(result.entities,function (key) {

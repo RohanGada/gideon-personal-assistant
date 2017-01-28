@@ -3,6 +3,13 @@ var builder = require('botbuilder');
 var _ = require("lodash");
 var request = require("request");
 var googleAPIKey = 'AIzaSyAr1qnV2I_Pg_Ck3kgaKXtO_ma5gw3Z1rg';
+// -- OBJECT DEBUGGER
+var objectDebugger = function (naughtyObject) {
+  _.each(naughtyObject,function (value,property) {
+    console.log(property,value)
+  })
+};
+//
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -73,11 +80,13 @@ bot.dialog('/', new builder.IntentDialog({ recognizers: [recognizer] })
                   if(err){
                     session.send("Couldn't retrieve the results.")
                   }else if(body && body.results){
-                    console.log("hain "+body);
+                    // objectDebugger(body.results[0])
+                    var query = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+body.results[0].geometry.location.lat+','+body.results[0].geometry.location.lng+'&radius=500&type='+_.find(result.entities,function (key) {
+                      return key.type == 'place_type'
+                    }).entity+'&key='+googleAPIKey;
+                    console.log(query);
                     request.post({
-                      url:'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location='+body.results[0].geometry.location.lat+','+body.results[0].geometry.location.long+'&radius=500&type='+_.find(result.entities,function (key) {
-                        return key.type == 'place_type'
-                      }).entity+'&keyword=cruise&key='+googleAPIKey
+                      url:query
                     },function (err,http,body) {
                       if(body){
                         body = JSON.parse(body);
@@ -91,7 +100,7 @@ bot.dialog('/', new builder.IntentDialog({ recognizers: [recognizer] })
                       }
                     });
                   }else{
-                    console.log(body.results);
+                    // console.log(body.results);
                     session.send("The location is in existent");
                   }
                 });

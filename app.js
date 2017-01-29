@@ -3,6 +3,7 @@ var builder = require('botbuilder');
 var _ = require("lodash");
 var request = require("request");
 var pluralize = require('pluralize');
+var striptags = require('striptags');
 var globe = {};
 var googleAPIKey = 'AIzaSyAr1qnV2I_Pg_Ck3kgaKXtO_ma5gw3Z1rg';
 var greetings = ['Greetings Human.', 'Oh its you again.', 'Yo!', 'Hello Pal!', "Hi! I was just thinking where'd you take me today!"];
@@ -77,14 +78,39 @@ var singleRichCard = function(session, obj) {
             .quantity(720)
             .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/cloud-service.png'))
         ])
+        // .tax('$ 7.50')
+        // .total('$ 90.95')
+        // .buttons([
+        //     builder.CardAction.openUrl(session, 'https://azure.microsoft.com/en-us/pricing/', 'More Information')
+        //     .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
+        // ]);
+}
+//
+//
+var directionView = function (session,obj) {
+  return new builder.ReceiptCard(session)
+        .title(obj.routes[0].legs[0].start_address + " to "+ obj.routes[0].legs[0].end_address)
+        .facts([
+            builder.Fact.create(session, '1234', 'Order Number'),
+            builder.Fact.create(session, 'VISA 5555-****', 'Payment Method')
+        ])
+        .items([
+            builder.ReceiptItem.create(session, '$ 38.45', 'Data Transfer')
+                .quantity(368)
+                .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/traffic-manager.png')),
+            builder.ReceiptItem.create(session, '$ 45.00', 'App Service')
+                .quantity(720)
+                .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/cloud-service.png'))
+        ])
         .tax('$ 7.50')
         .total('$ 90.95')
         .buttons([
             builder.CardAction.openUrl(session, 'https://azure.microsoft.com/en-us/pricing/', 'More Information')
-            .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
+                .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
         ]);
-}
+};
 //
+
 //=========================================================
 // Bot Setup
 //=========================================================
@@ -268,14 +294,17 @@ bot.dialog('/', new builder.IntentDialog({
       console.log(result);
       builder.Prompts.text(session, "Can you tell where are you? I don't walk around stalking you. Well, unless you have noticed. Have you?");
     },function(session,result){
-      var query = "https://maps.googleapis.com/maps/api/directions/json?origin="+globe['location']+"&destination="+result.response+"&key="+googleAPIKey;
+      var query = "https://maps.googleapis.com/maps/api/directions/json?origin="+result.response+"&destination="+globe['location']+"&key="+googleAPIKey;
+      console.log(query);
       request.post({
         url:query
       },function (err,http,body) {
         if(err){
           session.send("Couldn't retrieve the results.")
         }else{
-          console.log(query);
+            var card = directionView(session,JSON.parse(body))
+            var msg = new builder.Message(session).addAttachment(card);
+            session.send(msg);
         }
       })
     }])
@@ -285,49 +314,49 @@ bot.dialog('/', new builder.IntentDialog({
         }
     ])
 );
-bot.dialog('/abc', function(session) {
-    console.log(session.message);
-    if (session.message.text) {
-        console.log(session.message.text);
-        switch (parseInt(session.message.text)) {
-
-            case 1:
-                globe['selected'] = globe.select[0];
-
-            case 2:
-                globe['selected'] = globe.select[1];
-
-            case 3:
-                globe['selected'] = globe.select[2];
-
-            case 4:
-                globe['selected'] = globe.select[3];
-
-            case 5:
-                globe['selected'] = globe.select[4];
-
-            case 6:
-                globe['selected'] = globe.select[5];
-
-            case 7:
-                globe['selected'] = globe.select[6];
-
-            case 8:
-                globe['selected'] = globe.select[7];
-
-            case 9:
-                globe['selected'] = globe.select[8];
-
-            case 10, 'one', 'First':
-                globe['selected'] = globe.select[9];
-                console.log(globe);
-                break;
-            default:
-                {
-                    session.beginDialog('/act')
-                }
-        };
-    } else {
-        session.send("Some error occurred");
-    }
-});
+// bot.dialog('/abc', function(session) {
+//     console.log(session.message);
+//     if (session.message.text) {
+//         console.log(session.message.text);
+//         switch (parseInt(session.message.text)) {
+//
+//             case 1:
+//                 globe['selected'] = globe.select[0];
+//
+//             case 2:
+//                 globe['selected'] = globe.select[1];
+//
+//             case 3:
+//                 globe['selected'] = globe.select[2];
+//
+//             case 4:
+//                 globe['selected'] = globe.select[3];
+//
+//             case 5:
+//                 globe['selected'] = globe.select[4];
+//
+//             case 6:
+//                 globe['selected'] = globe.select[5];
+//
+//             case 7:
+//                 globe['selected'] = globe.select[6];
+//
+//             case 8:
+//                 globe['selected'] = globe.select[7];
+//
+//             case 9:
+//                 globe['selected'] = globe.select[8];
+//
+//             case 10, 'one', 'First':
+//                 globe['selected'] = globe.select[9];
+//                 console.log(globe);
+//                 break;
+//             default:
+//                 {
+//                     session.beginDialog('/act')
+//                 }
+//         };
+//     } else {
+//         session.send("Some error occurred");
+//     }
+// });

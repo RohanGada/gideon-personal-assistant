@@ -5,7 +5,7 @@ var request = require("request");
 var pluralize = require('pluralize');
 var globe = {};
 var googleAPIKey = 'AIzaSyAr1qnV2I_Pg_Ck3kgaKXtO_ma5gw3Z1rg';
-var greetings = ['Greetings Human.', 'Oh its you again', 'Yo!', 'Hello Pal!', "Hi! I was just thinking where'd you take me today!"];
+var greetings = ['Greetings Human.', 'Oh its you again.', 'Yo!', 'Hello Pal!', "Hi! I was just thinking where'd you take me today!"];
 // -- OBJECT DEBUGGER
 var objectDebugger = function(naughtyObject) {
     _.each(naughtyObject, function(value, property) {
@@ -174,7 +174,7 @@ bot.dialog('/', new builder.IntentDialog({
         function(session) {
             // console.log("bhag bhenchod")
             // session.beginDialog('/support');
-            session.send("Hello there ..");
+            session.send(greetings[Math.floor(Math.random() * (greetings.length - 1))]);
         },
         function(session, result) {
             // console.log(result.response);
@@ -262,16 +262,22 @@ bot.dialog('/', new builder.IntentDialog({
           session.send('Its out of the way now.');
         }
     }])
-    .matches('cancelSelection',[function (session) {
-        if(globe['selected']){
-          globe['selected'] = {};
-          session.send('Its out of the way now.');
-        }
-    }])
+
     .matches('takeMeThere',[function (session,result) {
       // if()
-    },{
-
+      console.log(result);
+      builder.Prompts.text(session, "Can you tell where are you? I don't walk around stalking you. Well, unless you have noticed. Have you?");
+    },function(session,result){
+      var query = "https://maps.googleapis.com/maps/api/directions/json?origin="+globe['location']+"&destination="+result.response+"&key="+googleAPIKey;
+      request.post({
+        url:query
+      },function (err,http,body) {
+        if(err){
+          session.send("Couldn't retrieve the results.")
+        }else{
+          console.log(query);
+        }
+      })
     }])
     .onDefault([
         function(session) {

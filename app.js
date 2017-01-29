@@ -65,7 +65,6 @@ var generateCardUIArray = function(session, arr) {
 var singleRichCard = function(session, obj) {
     return new builder.ReceiptCard(session)
         .title(obj.name)
-        // .subtitle(obj.vicinity)
         .facts([
             builder.Fact.create(session, ((obj.rating) ? obj.rating : 'unrated ') + '/5', 'Rating'),
             // builder.Fact.create(session, 'VISA 5555-****', 'Payment Method')
@@ -162,7 +161,6 @@ bot.dialog('/', new builder.IntentDialog({
                     session.send('Reselect between the 10 choices');
                 }
         };
-        // session.send(globe['selected'].place_id);
         request.post({
             url: 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + globe['selected'].place_id + '&key=' + googleAPIKey
         }, function(err, http, body) {
@@ -187,12 +185,9 @@ bot.dialog('/', new builder.IntentDialog({
     })
     .matches('greetings', [
         function(session) {
-            // console.log("bhag bhenchod")
-            // session.beginDialog('/support');
             session.send(greetings[Math.floor(Math.random() * (greetings.length - 1))]);
         },
         function(session, result) {
-            // console.log(result.response);
             var ticketNumber = result.response;
             session.send("Your ticket number is %s", ticketNumber);
             session.endDialog();
@@ -278,8 +273,8 @@ bot.dialog('/', new builder.IntentDialog({
         }
     }])
 
+
     .matches('takeMeThere',[function (session,result) {
-      // if()
       console.log(result);
       builder.Prompts.text(session, "Can you tell where are you? I don't walk around stalking you. Well, unless you have noticed. Have you?");
     },function(session,result){

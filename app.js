@@ -73,41 +73,29 @@ var singleRichCard = function(session, obj) {
         .items([
             builder.ReceiptItem.create(session, '', obj.vicinity)
             .quantity()
-            .image(builder.CardImage.create(session,obj.icon)),
-            builder.ReceiptItem.create(session, '$ 45.00', 'App Service')
-            .quantity(720)
-            .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/cloud-service.png'))
+            .image(builder.CardImage.create(session,obj.icon))
         ])
-        // .tax('$ 7.50')
-        // .total('$ 90.95')
-        // .buttons([
-        //     builder.CardAction.openUrl(session, 'https://azure.microsoft.com/en-us/pricing/', 'More Information')
-        //     .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
-        // ]);
 }
 //
 //
 var directionView = function (session,obj) {
-  return new builder.ReceiptCard(session)
-        .title(obj.routes[0].legs[0].start_address + " to "+ obj.routes[0].legs[0].end_address)
-        .facts([
-            builder.Fact.create(session, '1234', 'Order Number'),
-            builder.Fact.create(session, 'VISA 5555-****', 'Payment Method')
-        ])
-        .items([
-            builder.ReceiptItem.create(session, '$ 38.45', 'Data Transfer')
-                .quantity(368)
-                .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/traffic-manager.png')),
-            builder.ReceiptItem.create(session, '$ 45.00', 'App Service')
-                .quantity(720)
-                .image(builder.CardImage.create(session, 'https://github.com/amido/azure-vector-icons/raw/master/renders/cloud-service.png'))
-        ])
-        .tax('$ 7.50')
-        .total('$ 90.95')
-        .buttons([
-            builder.CardAction.openUrl(session, 'https://azure.microsoft.com/en-us/pricing/', 'More Information')
-                .image('https://raw.githubusercontent.com/amido/azure-vector-icons/master/renders/microsoft-azure.png')
-        ]);
+  var directionCard = new builder.ReceiptCard(session);
+  if(obj.routes[0]){
+    directionCard.title(obj.routes[0].legs[0].start_address + " to "+ obj.routes[0].legs[0].end_address);
+    directionCard.facts([
+        builder.Fact.create(session, obj.routes[0].summary, 'Summary'),
+        builder.Fact.create(session, obj.routes[0].legs[0].duration.text, obj.routes[0].legs[0].distance.text)
+    ])
+  }
+  var arr = [];
+  _.each(obj.routes[0].legs[0].steps,function (key) {
+    arr.push(new builder.ReceiptItem.create(session, key.duration.text, striptags(key.html_instructions))
+          .quantity(368)
+          .image(builder.CardImage.create(session, 'http://files.softicons.com/download/web-icons/pretty-office-viii-icons-by-custom-icon-design/png/128x128/Arrow-'+key['maneuver']+'.png')))
+  });
+  directionCard.items(arr);
+  return directionCard;
+
 };
 //
 
@@ -174,7 +162,7 @@ bot.dialog('/', new builder.IntentDialog({
                     session.send('Reselect between the 10 choices');
                 }
         };
-        session.send(globe['selected'].place_id);
+        // session.send(globe['selected'].place_id);
         request.post({
             url: 'https://maps.googleapis.com/maps/api/place/details/json?placeid=' + globe['selected'].place_id + '&key=' + googleAPIKey
         }, function(err, http, body) {
@@ -189,6 +177,7 @@ bot.dialog('/', new builder.IntentDialog({
                 // attach the card to the reply message
                 var msg = new builder.Message(session).addAttachment(card);
                 session.send(msg);
+                session.send('What do you think?');
             } else {
                 session.send("Couldn't retrieve this " + globe['selected'].place_id);
             }

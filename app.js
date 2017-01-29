@@ -272,7 +272,9 @@ bot.dialog('/', new builder.IntentDialog({
           session.send('Its out of the way now.');
         }
     }])
-
+    .matches('thankYou',[function (session) {
+          session.send("You're welcome.");
+    }])
 
     .matches('takeMeThere',[function (session,result) {
       console.log(result);

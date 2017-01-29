@@ -2,6 +2,7 @@ var restify = require('restify');
 var builder = require('botbuilder');
 var _ = require("lodash");
 var request = require("request");
+var pluralize = require('pluralize');
 var globe = {};
 var googleAPIKey = 'AIzaSyAr1qnV2I_Pg_Ck3kgaKXtO_ma5gw3Z1rg';
 // -- OBJECT DEBUGGER
@@ -32,7 +33,7 @@ var generateCardUIArray = function(session, arr) {
     var generated = _.map(arr, function(key) {
         var oneCard = new builder.HeroCard(session);
         if (key.title) {
-            oneCard.title((i + 1) + " " + key.title);
+            oneCard.title((i + 1) + ". " + key.title);
         }
         if (key.subtitle) {
             oneCard.subtitle(key.subtitle);
@@ -51,7 +52,7 @@ var generateCardUIArray = function(session, arr) {
         if (key.link) {
             oneCard.buttons([
                 builder.CardAction.openUrl(session, key.link, 'Learn More')
-            ])
+            ]);
         }
         i++;
         return oneCard;
@@ -59,11 +60,12 @@ var generateCardUIArray = function(session, arr) {
     return generated;
 };
 //
-var singleRichCard = function (session) {
+var singleRichCard = function (session,obj) {
     return new builder.ReceiptCard(session)
-        .title('John Doe')
+        .title(obj.name)
+        // .subtitle(obj.vicinity)
         .facts([
-            builder.Fact.create(session, '1234', 'Order Number'),
+            builder.Fact.create(session, obj.rating+'/5', 'Rating'),
             builder.Fact.create(session, 'VISA 5555-****', 'Payment Method')
         ])
         .items([
@@ -146,11 +148,24 @@ bot.dialog('/', new builder.IntentDialog({
               }
       };
        session.send(globe['selected'].place_id);
-       var card = singleRichCard(session);
+       request.post({
+         url:'https://maps.googleapis.com/maps/api/place/details/json?placeid='+globe['selected'].place_id+'&key='+googleAPIKey
+       },function (err,http,body) {
+         if(body){body = JSON.parse(body);}
+         if(err){
+           session.send("Couldn't retrieve the results.");
+         }else if(!_.isEmpty(body)){
+           var card = singleRichCard(session,body.result);
 
-        // attach the card to the reply message
-        var msg = new builder.Message(session).addAttachment(card);
-        session.send(msg);
+            // attach the card to the reply message
+            var msg = new builder.Message(session).addAttachment(card);
+            session.send(msg);
+         }else{
+           session.send("Couldn't retrieve this "+globe['selected'].place_id);
+         }
+       });
+
+
     })
     .matches('greetings', [
         function(session) {
@@ -179,7 +194,7 @@ bot.dialog('/', new builder.IntentDialog({
                         session.send("Couldn't retrieve the results.")
                     } else if (body && body.results) {
                         // objectDebugger(body.results[0])
-                        var query = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + body.results[0].geometry.location.lat + ',' + body.results[0].geometry.location.lng + '&radius=2000&type=' + valueFromObjectArray(result.entities, 'type', 'place_type', 'entity').replace(' ', '_') + '&key=' + googleAPIKey;
+                        var query = 'https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=' + body.results[0].geometry.location.lat + ',' + body.results[0].geometry.location.lng + '&radius=2000&type=' + pluralize.singular(valueFromObjectArray(result.entities, 'type', 'place_type', 'entity')).replace(' ', '_') + '&key=' + googleAPIKey;
                         console.log(query);
                         request.post({
                             url: query
@@ -203,7 +218,7 @@ bot.dialog('/', new builder.IntentDialog({
                                 if (cards.length > 0) {
                                     globe.select = _.map(body.results, function(key) {
                                         return {
-                                            place_type: valueFromObjectArray(result.entities, 'type', 'place_type', 'entity'),
+                                            place_type: pluralize.singular(valueFromObjectArray(result.entities, 'type', 'place_type', 'entity')),
                                             place: key.name,
                                             place_id:key.place_id
                                         };

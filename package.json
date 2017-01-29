@@ -5,6 +5,7 @@
     "botbuilder": "^3.5.4",
     "dotenv-extended": "^1.0.3",
     "lodash": "^4.17.4",
+    "pluralize": "^3.1.0",
     "request": "^2.75.0",
     "restify": "^4.3.0"
   }
